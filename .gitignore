@@ -1,0 +1,6 @@
+node_modules
+.serverless
+.env
+
+sp-*.json
+google-credentials.json

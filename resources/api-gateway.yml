@@ -1,0 +1,318 @@
+Resources:
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ${self:service}-${self:provider.stage}
+      Description: 介護ARグラス用APIエンドポイント
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      BinaryMediaTypes:
+        - 'application/octet-stream'
+        - 'image/jpeg'
+        - 'image/png'
+      Tags:
+        Project: CareARGlass
+
+  # CORS設定
+  ApiGatewayCorsConfiguration:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: ApiGatewayRestApi
+
+  # API Usageプラン（APIキー制限）
+  ApiGatewayUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: ApiGatewayDeployment
+    Properties:
+      UsagePlanName: ${self:service}-${self:provider.stage}-usage-plan
+      Description: 介護ARグラス用APIの使用制限
+      ApiStages:
+        - ApiId:
+            Ref: ApiGatewayRestApi
+          Stage: ${self:provider.stage}
+      Throttle:
+        BurstLimit: 100
+        RateLimit: 50
+      Quota:
+        Limit: 10000
+        Period: DAY
+
+  # メソッドレスポンス設定
+  SuccessResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ContentType: application/json
+      Description: 成功レスポンス
+      Schema:
+        type: object
+        properties:
+          message:
+            type: string
+          data:
+            type: object
+
+  ErrorResponse:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ContentType: application/json
+      Description: エラーレスポンス
+      Schema:
+        type: object
+        properties:
+          message:
+            type: string
+          error:
+            type: string
+
+  # APIデプロイメント（実際のデプロイを行う）
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ApiGatewayMethodCommandPost
+      - ApiGatewayMethodPatientsGet
+      - ApiGatewayMethodPatientsPatientIdGet
+      - ApiGatewayMethodVitalsPost
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      StageName: ${self:provider.stage}
+      StageDescription:
+        LoggingLevel: INFO
+        MetricsEnabled: true
+        DataTraceEnabled: true
+        ThrottlingBurstLimit: 100
+        ThrottlingRateLimit: 50
+
+  # APIステージ設定
+  ApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      DeploymentId:
+        Ref: ApiGatewayDeployment
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      StageName: ${self:provider.stage}
+      Description: ${self:provider.stage}環境
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: INFO
+          MetricsEnabled: true
+          DataTraceEnabled: true
+
+  # コマンド処理エンドポイント
+  ApiGatewayResourceCommand:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ParentId:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      PathPart: 'command'
+
+  ApiGatewayMethodCommandPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ResourceId:
+        Ref: ApiGatewayResourceCommand
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - CommandHandlerLambdaFunction
+                  - Arn
+              - '/invocations'
+      MethodResponses:
+        - StatusCode: '200'
+          ResponseModels:
+            application/json:
+              Ref: SuccessResponse
+        - StatusCode: '400'
+          ResponseModels:
+            application/json:
+              Ref: ErrorResponse
+        - StatusCode: '500'
+          ResponseModels:
+            application/json:
+              Ref: ErrorResponse
+
+  # 患者情報エンドポイント
+  ApiGatewayResourcePatients:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ParentId:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      PathPart: 'patients'
+
+  ApiGatewayMethodPatientsGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ResourceId:
+        Ref: ApiGatewayResourcePatients
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - ListPatientsLambdaFunction
+                  - Arn
+              - '/invocations'
+
+  ApiGatewayResourcePatientsPatientId:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ParentId:
+        Ref: ApiGatewayResourcePatients
+      PathPart: '{patientId}'
+
+  ApiGatewayMethodPatientsPatientIdGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ResourceId:
+        Ref: ApiGatewayResourcePatientsPatientId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.patientId: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - GetPatientInfoLambdaFunction
+                  - Arn
+              - '/invocations'
+
+  # バイタル記録エンドポイント
+  ApiGatewayResourceVitals:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ParentId:
+        Fn::GetAtt:
+          - ApiGatewayRestApi
+          - RootResourceId
+      PathPart: 'vitals'
+
+  ApiGatewayMethodVitalsPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ResourceId:
+        Ref: ApiGatewayResourceVitals
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - RecordVitalLambdaFunction
+                  - Arn
+              - '/invocations'
+
+  ApiGatewayResourceVitalsPatientId:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ParentId:
+        Ref: ApiGatewayResourceVitals
+      PathPart: '{patientId}'
+
+  ApiGatewayMethodVitalsPatientIdGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Ref: ApiGatewayRestApi
+      ResourceId:
+        Ref: ApiGatewayResourceVitalsPatientId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.patientId: true
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - GetPatientVitalsLambdaFunction
+                  - Arn
+              - '/invocations'
+
+Outputs:
+  ApiGatewayRestApiId:
+    Value:
+      Ref: ApiGatewayRestApi
+  ApiGatewayRootResourceId:
+    Value:
+      Fn::GetAtt:
+        - ApiGatewayRestApi
+        - RootResourceId
+  ApiEndpoint:
+    Value:
+      Fn::Join:
+        - ''
+        - - 'https://'
+          - Ref: ApiGatewayRestApi
+          - '.execute-api.'
+          - Ref: AWS::Region
+          - '.amazonaws.com/'
+          - ${self:provider.stage}

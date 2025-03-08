@@ -1,0 +1,179 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: shiki
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: care-ar-glass
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: care-ar-glass
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-northeast-1
+  stage: ${opt:stage, 'dev'}
+
+  environment:
+    NODE_ENV: ${opt:stage, 'dev'}
+    PATIENTS_TABLE: ${self:service}-${self:provider.stage}-patients
+    VITALS_TABLE: ${self:service}-${self:provider.stage}-vitals
+    CARE_RECORDS_TABLE: ${self:service}-${self:provider.stage}-care-records
+    DEVICES_TABLE: ${self:service}-${self:provider.stage}-devices
+    STAFF_TABLE: ${self:service}-${self:provider.stage}-staff
+    FAMILY_ACCESS_TABLE: ${self:service}-${self:provider.stage}-family-access
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
+    GOOGLE_APPLICATION_CREDENTIALS: ${google-credentials.json}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+          Resource:
+            - !GetAtt PatientsTable.Arn
+            - !GetAtt VitalsTable.Arn
+
+functions:
+  commandHandler:
+    handler: functions/commandHandler.handler
+    events:
+      - http:
+          path: command
+          method: post
+          cors: true
+
+    # 患者情報取得
+    getPatientInfo:
+      handler: functions/patientInfo.handler
+      events:
+        - http:
+            path: patients/{patientId}
+            method: get
+            cors: true
+
+    # 患者一覧取得
+    listPatients:
+      handler: functions/patientInfo.listPatients
+      events:
+        - http:
+            path: patients
+            method: get
+            cors: true
+
+    # バイタル記録
+    recordVital:
+      handler: functions/recordVital.handler
+      events:
+        - http:
+            path: vitals
+            method: post
+            cors: true
+
+    # 患者バイタル履歴取得
+    getPatientVitals:
+      handler: functions/recordVital.getPatientVitals
+      events:
+        - http:
+            path: vitals/{patientId}
+            method: get
+            cors: true
+
+    # 食事記録
+    recordMeal:
+      handler: functions/recordMeal.handler
+      events:
+        - http:
+            path: meals
+            method: post
+            cors: true
+
+    # 患者食事履歴取得
+    getPatientMeals:
+      handler: functions/recordMeal.getPatientMeals
+      events:
+        - http:
+            path: meals/{patientId}
+            method: get
+            cors: true
+
+    # 投薬記録
+    recordMedicine:
+      handler: functions/recordMedicine.handler
+      events:
+        - http:
+            path: medicines
+            method: post
+            cors: true
+
+    # 患者投薬履歴取得
+    getPatientMedicines:
+      handler: functions/recordMedicine.getPatientMedicines
+      events:
+        - http:
+            path: medicines/{patientId}
+            method: get
+            cors: true
+
+    # スタッフ呼び出し
+    callStaff:
+      handler: functions/callStaff.handler
+      events:
+        - http:
+            path: calls
+            method: post
+            cors: true
+
+    # スタッフ一覧取得
+    listStaff:
+      handler: functions/callStaff.listStaff
+      events:
+        - http:
+            path: staff
+            method: get
+            cors: true
+
+    # 緊急通報
+    reportEmergency:
+      handler: functions/emergency.handler
+      events:
+        - http:
+            path: emergencies
+            method: post
+            cors: true
+
+    # 緊急通報一覧取得
+    listEmergencies:
+      handler: functions/emergency.listEmergencies
+      events:
+        - http:
+            path: emergencies
+            method: get
+            cors: true
+
+# リソース定義
+resources:
+  - ${file(resources/api-gateway.yml)}
+  - ${file(resources/dynamodb.yml)}
+
+# プラグイン
+plugins:
+  - serverless-offline  # ローカルテスト用
+  - serverless-dotenv-plugin  # 環境変数読み込み用
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: "node20"
+
+
+package:
+  individually: true
+  exclude:
+    - ./**
+  include:
+    - dist/**
+    - google-credentials.json

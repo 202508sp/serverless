@@ -1,0 +1,61 @@
+resources:
+  Resources:
+    # 患者情報テーブル
+    PatientsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CareARGlass-Patients
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: patientId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patientId
+            KeyType: HASH
+
+    # バイタルサインテーブル
+    VitalsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CareARGlass-Vitals
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: patientId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patientId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+
+    # ケア記録テーブル
+    CareRecordsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CareARGlass-CareRecords
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: patientId
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patientId
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+
+    # デバイス管理テーブル
+    DevicesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CareARGlass-Devices
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: deviceId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: deviceId
+            KeyType: HASH
