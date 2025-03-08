@@ -1,12 +1,11 @@
-import { DynamoDB } from 'aws-sdk';
-import { getPatientResult } from './index';
-import { Device } from '../../types/models';
-
-const dynamodb = new DynamoDB.DocumentClient();
+import { CareRecord, Device } from '../../types/models';
+import { getDataService } from "../services/serviceFactory";
 
 // 食事記録関数
 export async function recordMeal(parameters: Record<string, any>, deviceInfo: Device) {
     try {
+        const dataService = getDataService();
+
         const {patientName, mealType, amount} = parameters;
         const careRecordsTable = process.env.CARE_RECORDS_TABLE || '';
 
@@ -25,7 +24,8 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
         }
 
         // 患者IDの取得
-        const patientResult = await getPatientResult(patientName);
+        const patientResult = await dataService.getPatientResult(patientName);
+        console.log(patientResult);
 
         if (typeof patientResult === 'undefined') {
             return {
@@ -34,18 +34,18 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
             };
         }
 
-        if (!patientResult.Items || patientResult.Items.length === 0) {
+        if (!patientResult) {
             return {
                 command: 'NOT_FOUND',
                 displayText: `${patientName}さんの情報が見つかりませんでした。`
             };
         }
 
-        const patientId = patientResult.Items[0].patientId;
+        const patientId = patientResult.patientId;
         const timestamp = new Date().toISOString();
 
         // 食事記録データ作成
-        const mealRecord = {
+        const mealRecord: CareRecord = {
             patientId,
             timestamp,
             careType: 'meal',
@@ -58,10 +58,7 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
         };
 
         // 食事記録保存
-        await dynamodb.put({
-            TableName: careRecordsTable,
-            Item: mealRecord
-        }).promise();
+        await dataService.setCareRecord(careRecordsTable, mealRecord);
 
         // 食事タイプの日本語表示調整
         let mealTypeDisplay = mealType;
@@ -72,7 +69,7 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
 
         return {
             command: 'RECORD_MEAL',
-            displayText: `${patientName}さんの${mealTypeDisplay}摂取記録を保存しました:\n摂取量: ${amount}`
+            displayText: `${patientName}さんの${mealTypeDisplay}摂取記録を保存しました: \n 摂取量: ${amount}`
         };
     } catch (error) {
         console.error('食事記録エラー:', error);

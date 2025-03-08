@@ -70,7 +70,7 @@ export async function executeCommand(commandResult: CommandResult, deviceInfo: D
             default:
                 return {
                     command: 'UNKNOWN_COMMAND',
-                    displayText: `認識できないコマンドです: ${command}\nもう一度お試しください。`
+                    displayText: `認識できないコマンドです: ${command} \n もう一度お試しください。`
                 };
         }
     } catch (error) {

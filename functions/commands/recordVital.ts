@@ -1,13 +1,12 @@
-import { DynamoDB } from 'aws-sdk';
 import { formatResponse } from '../utils/response';
-import { getPatientResult } from './index';
-import { Device } from '../../types/models';
-
-const dynamodb = new DynamoDB.DocumentClient();
+import { Device, VitalSign } from '../../types/models';
+import { getDataService } from "../services/serviceFactory";
 
 // バイタルサイン記録関数
 export async function recordVitalSigns(parameters: Record<string, any>, deviceInfo: Device) {
     try {
+        const dataService = getDataService();
+
         const {patientName, vitalType, vitalValue} = parameters;
 
         if (!patientName || !vitalType || !vitalValue) {
@@ -18,20 +17,20 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
         }
 
         // 患者IDの取得
-        const patientResult = await getPatientResult(patientName);
+        const patientResult = await dataService.getPatientResult(patientName);
 
-        if (typeof patientResult === 'undefined' || !patientResult.Items || patientResult.Items.length === 0) {
+        if (typeof patientResult === 'undefined' || !patientResult) {
             return {
                 command: 'NOT_FOUND',
                 displayText: `${patientName}さんの情報が見つかりませんでした。`
             };
         }
 
-        const patientId = patientResult.Items[0].patientId || '';
+        const patientId = patientResult.patientId || '';
         const timestamp = new Date().toISOString();
 
         // バイタルデータ作成
-        const vitalData = {
+        const vitalData: VitalSign = {
             patientId,
             timestamp,
             temperature: vitalValue,
@@ -94,10 +93,7 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
         }
 
         // バイタルデータ保存
-        await dynamodb.put({
-            TableName: vitalsTable,
-            Item: vitalData
-        }).promise();
+        await dataService.setCareRecord(vitalsTable, vitalData);
 
         // 表示メッセージ生成
         let vitalTypeDisplay = vitalType;
@@ -119,7 +115,7 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
 
         return {
             command: 'RECORD_VITAL',
-            displayText: `${patientName}さんの${vitalTypeDisplay}を記録しました:\n${vitalValueDisplay}`
+            displayText: `${patientName}さんの${vitalTypeDisplay}を記録しました: \n ${vitalValueDisplay}`
         };
     } catch (error) {
         console.error('バイタル記録エラー:', error);

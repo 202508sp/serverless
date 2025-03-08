@@ -30,7 +30,7 @@ export async function reportEmergency(parameters: Record<string, any>, _deviceIn
 
         return {
             command: 'EMERGENCY',
-            displayText: `緊急通報を送信しました: ${location}\n\n応援が向かっています。`,
+            displayText: `緊急通報を送信しました: ${location} \n\n 応援が向かっています。`,
             isEmergency: true  // フロントエンドで赤色表示などの特別処理のフラグ
         };
     } catch (error) {

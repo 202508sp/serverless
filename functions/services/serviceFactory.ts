@@ -12,7 +12,7 @@ import { DataService } from './dataService';
 import { MockSpeechService } from './mocks/MockSpeechService';
 import { MockAIService } from './mocks/MockAIService';
 import { MockDataService } from './mocks/MockDataService';
-import { Patient } from "../../types/models";
+import { Device, Patient, Staff, VitalSign } from "../../types/models";
 
 // シングルトンインスタンス
 let speechService: ISpeechService | null = null;
@@ -104,8 +104,6 @@ export const resetServices = (): void => {
     aiService = null;
     dataService = null;
 };
-
-// functions/services/serviceFactory.ts に以下を追加
 
 // 開発用モック音声サービスのセットアップ
 function setupDevMockSpeechService(mockService: MockSpeechService): void {
@@ -241,7 +239,7 @@ function setupDevMockData(mockService: MockDataService): void {
     ];
 
     // スタッフデータ
-    const staffs = [
+    const staffs: Staff[] = [
         {
             staffId: 'S001',
             name: '佐藤看護師',
@@ -272,7 +270,7 @@ function setupDevMockData(mockService: MockDataService): void {
     ];
 
     // デバイスデータ
-    const devices = [
+    const devices: Device[] = [
         {
             deviceId: 'D001',
             assignedTo: 'S001',
@@ -294,7 +292,7 @@ function setupDevMockData(mockService: MockDataService): void {
     ];
 
     // バイタルデータ
-    const vitals = [
+    const vitals: VitalSign[] = [
         {
             patientId: 'P001',
             timestamp: new Date().toISOString(),

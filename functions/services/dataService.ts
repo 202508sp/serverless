@@ -31,6 +31,36 @@ export class DataService implements IDataService{
     }
 
     /**
+     *
+     * @param patientName
+     */
+    async getPatientResult(patientName: string) {
+        const patientsTable = process.env.PATIENTS_TABLE;
+
+        if (!patientsTable) {
+            throw new Error('環境変数 PATIENTS_TABLE が設定されていません');
+        } else {
+            const result = await dynamodb.query({
+                TableName: patientsTable,
+                IndexName: 'NameIndex',
+                KeyConditionExpression: '#name = :patientName',
+                ExpressionAttributeNames: {
+                    '#name': 'name'
+                },
+                ExpressionAttributeValues: {
+                    ':patientName': patientName
+                }
+            }).promise();
+
+            if (!result.Items || result.Items.length === 0) {
+                return null;
+            }
+
+            return result.Items[0] as Patient;
+        }
+    }
+
+    /**
      * 患者IDから患者情報を取得する
      * @param patientId 患者ID
      * @returns 患者情報、または存在しない場合はnull
@@ -173,4 +203,12 @@ export class DataService implements IDataService{
         return Promise.resolve(undefined);
     }
 
+    async setCareRecord(careRecordsTable: string, careRecord: CareRecord | VitalSign): Promise<void> {
+        await dynamodb.put({
+            TableName: careRecordsTable,
+            Item: careRecord
+        }).promise();
+
+        return Promise.resolve(undefined);
+    }
 }

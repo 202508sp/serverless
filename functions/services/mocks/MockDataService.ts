@@ -12,20 +12,28 @@ export class MockDataService implements IDataService {
         this.patientData.set(data.patientId, data);
     }
 
-    addStaff(data: any): void {
-        this.staffData.set(data.id, data);
+    addStaff(data: Staff): void {
+        this.staffData.set(data.staffId, data);
     }
 
-    addDevice(data: any): void {
-        this.deviceData.set(data.id, data);
+    addDevice(data: Device): void {
+        this.deviceData.set(data.deviceId, data);
     }
 
-    addVital(data: any): void {
-        this.vitalSignData.set(data.id, data);
+    addVital(data: VitalSign): void {
+        this.vitalSignData.set(data.patientId, data);
     }
 
     getDeviceInfo(_deviceId: string): Promise<Device | null> {
         return Promise.resolve(null);
+    }
+
+    getPatientResult(patientName: string): Promise<Patient | null> {
+        const id = Array.from(this.patientData.keys()).find(key => {
+            const patient = this.patientData.get(key);
+            return patient && patient.name === patientName;
+        })
+        return Promise.resolve(this.patientData.get(id || '') || null);
     }
 
     getPatientById(id: string): Promise<Patient | null> {
@@ -48,8 +56,12 @@ export class MockDataService implements IDataService {
         return Promise.resolve(null);
     }
 
-    getStaffByName(_name: string): Promise<Staff | null> {
-        return Promise.resolve(null);
+    getStaffByName(name: string): Promise<Staff | null> {
+        const id = Array.from(this.staffData.keys()).find(key => {
+            const staff = this.staffData.get(key);
+            return staff && staff.name === name;
+        })
+        return Promise.resolve(this.staffData.get(id || '') || null);
     }
 
     saveCareMeal(_careRecord: CareRecord): Promise<void> {
@@ -61,6 +73,10 @@ export class MockDataService implements IDataService {
     }
 
     saveVitalSign(_vitalSign: VitalSign): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    setCareRecord(_careRecordsTable: string, _careRecord: CareRecord | VitalSign): Promise<void> {
         return Promise.resolve(undefined);
     }
 }

@@ -1,11 +1,11 @@
-import { DynamoDB } from 'aws-sdk';
 import { Device } from '../../types/models';
-
-const dynamodb = new DynamoDB.DocumentClient();
+import { getDataService } from "../services/serviceFactory";
 
 // スタッフ呼び出し関数
 export async function callStaff(parameters: Record<string, any>, _deviceInfo: Device) {
     try {
+        const dataService = getDataService();
+
         const {staffName} = parameters;
         const staffTable = process.env.STAFF_TABLE || '';
 
@@ -24,19 +24,9 @@ export async function callStaff(parameters: Record<string, any>, _deviceInfo: De
         }
 
         // スタッフIDの取得
-        const staffResult = await dynamodb.query({
-            TableName: staffTable,
-            IndexName: 'NameIndex',
-            KeyConditionExpression: '#name = :staffName',
-            ExpressionAttributeNames: {
-                '#name': 'name'
-            },
-            ExpressionAttributeValues: {
-                ':staffName': staffName
-            }
-        }).promise();
+        const staffResult = await dataService.getStaffByName(staffName);
 
-        if (!staffResult.Items || staffResult.Items.length === 0) {
+        if (!staffResult) {
             return {
                 command: 'NOT_FOUND',
                 displayText: `${staffName}さんの情報が見つかりませんでした。`
@@ -61,7 +51,7 @@ export async function callStaff(parameters: Record<string, any>, _deviceInfo: De
 
         return {
             command: 'CALL_STAFF',
-            displayText: `${staffName}さんを呼び出しました。\n応答をお待ちください。`
+            displayText: `${staffName}さんを呼び出しました。 \n 応答をお待ちください。`
         };
     } catch (error) {
         console.error('スタッフ呼び出しエラー:', error);

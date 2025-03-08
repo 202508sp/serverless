@@ -1,11 +1,11 @@
-import { DynamoDB } from 'aws-sdk';
-import { Device } from '../../types/models';
-
-const dynamodb = new DynamoDB.DocumentClient();
+import { CareRecord, Device } from '../../types/models';
+import { getDataService } from "../services/serviceFactory";
 
 // 投薬記録関数
 export async function recordMedicine(parameters: Record<string, any>, deviceInfo: Device) {
     try {
+        const dataService = getDataService();
+
         const {patientName, medicine} = parameters;
         const patientsTable = process.env.PATIENTS_TABLE || '';
         const careRecordsTable = process.env.CARE_RECORDS_TABLE || '';
@@ -32,30 +32,20 @@ export async function recordMedicine(parameters: Record<string, any>, deviceInfo
         }
 
         // 患者IDの取得
-        const patientResult = await dynamodb.query({
-            TableName: patientsTable,
-            IndexName: 'NameIndex',
-            KeyConditionExpression: '#name = :patientName',
-            ExpressionAttributeNames: {
-                '#name': 'name'
-            },
-            ExpressionAttributeValues: {
-                ':patientName': patientName
-            }
-        }).promise();
+        const patientResult = await dataService.getPatientResult(patientName);
 
-        if (!patientResult.Items || patientResult.Items.length === 0) {
+        if (!patientResult) {
             return {
                 command: 'NOT_FOUND',
                 displayText: `${patientName}さんの情報が見つかりませんでした。`
             };
         }
 
-        const patientId = patientResult.Items[0].patientId;
+        const patientId = patientResult.patientId;
         const timestamp = new Date().toISOString();
 
         // 投薬記録データ作成
-        const medicineRecord = {
+        const medicineRecord: CareRecord = {
             patientId,
             timestamp,
             careType: 'medicine',
@@ -69,14 +59,11 @@ export async function recordMedicine(parameters: Record<string, any>, deviceInfo
         };
 
         // 投薬記録保存
-        await dynamodb.put({
-            TableName: careRecordsTable,
-            Item: medicineRecord
-        }).promise();
+        await dataService.setCareRecord(careRecordsTable, medicineRecord);
 
         return {
             command: 'RECORD_MEDICINE',
-            displayText: `${patientName}さんの投薬を記録しました:\n薬剤: ${medicine}`
+            displayText: `${patientName}さんの投薬を記録しました: \n 薬剤: ${medicine}`
         };
     } catch (error) {
         console.error('投薬記録エラー:', error);
