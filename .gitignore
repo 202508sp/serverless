@@ -1,5 +1,7 @@
-node_modules
-.serverless
+node_modules/
+.serverless/
+coverage/
+
 .env
 
 sp-*.json

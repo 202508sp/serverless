@@ -1,5 +1,4 @@
 import { DynamoDB } from 'aws-sdk';
-import { getDataService } from "../services/serviceFactory";
 import { Device } from '../../types/models';
 
 const dynamodb = new DynamoDB.DocumentClient();
@@ -7,8 +6,6 @@ const dynamodb = new DynamoDB.DocumentClient();
 // スタッフ呼び出し関数
 export async function callStaff(parameters: Record<string, any>, _deviceInfo: Device) {
     try {
-        const dataService = getDataService();
-
         const {staffName} = parameters;
         const staffTable = process.env.STAFF_TABLE || '';
 
