@@ -5,6 +5,7 @@ import { formatResponse } from './utils/response';
 import { logEvent } from "./utils/logger";
 import { Device } from "../types/models";
 import { EnvironmentMode, getAIService, getCurrentMode, getSpeechService } from "./services/serviceFactory";
+import { AttributeMap } from "aws-sdk/clients/dynamodb";
 
 // AWS設定
 const dynamodb = new DynamoDB.DocumentClient();
@@ -90,8 +91,12 @@ export async function handler(event: APIGatewayProxyEvent) {
 }
 
 
-// デバイス情報取得
-async function getDeviceInfo(deviceId: string) {
+/**
+    デバイス情報の取得
+    @param deviceId デバイスID
+    @returns デバイス情報
+ **/
+async function getDeviceInfo(deviceId: string): Promise<AttributeMap | undefined> {
     try {
         const deviceTable = process.env.DEVICE_TABLE || '';
 
@@ -99,7 +104,7 @@ async function getDeviceInfo(deviceId: string) {
             return {
                 command: 'ERROR',
                 displayText: '環境変数 DEVICE_TABLE が設定されていません'
-            }
+            } as AttributeMap;
         }
 
         const result = await dynamodb.get({
@@ -111,6 +116,6 @@ async function getDeviceInfo(deviceId: string) {
 
     } catch (error) {
         console.error('デバイス情報取得エラー:', error);
-        return null;
+        return undefined;
     }
 }

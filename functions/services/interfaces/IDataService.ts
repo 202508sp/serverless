@@ -1,6 +1,8 @@
-// functions/services/interfaces/IDataService.ts
 import { Patient, VitalSign, CareRecord, Staff, Device } from '../../../types/models';
 
+/**
+ * データサービスインターフェース
+ */
 export interface IDataService {
     getPatientResult(patientName: string): Promise<Patient | null>;
     getPatientByName(name: string): Promise<Patient | null>;

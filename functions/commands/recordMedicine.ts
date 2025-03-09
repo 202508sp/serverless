@@ -1,7 +1,13 @@
 import { CareRecord, Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
+import { logError } from "../utils/logger";
 
-// 投薬記録関数
+/**
+ * 投薬記録コマンドを実行する
+ * @param parameters コマンドパラメータ
+ * @param deviceInfo デバイス情報
+ * @returns 実行結果
+ */
 export async function recordMedicine(parameters: Record<string, any>, deviceInfo: Device) {
     try {
         const dataService = getDataService();
@@ -66,7 +72,7 @@ export async function recordMedicine(parameters: Record<string, any>, deviceInfo
             displayText: `${patientName}さんの投薬を記録しました: \n 薬剤: ${medicine}`
         };
     } catch (error) {
-        console.error('投薬記録エラー:', error);
+        logError('投薬記録エラー:', error);
         return {
             command: 'ERROR',
             displayText: '投薬記録中にエラーが発生しました。'

@@ -6,29 +6,6 @@ import { recordMedicine } from './recordMedicine';
 import { callStaff } from './callStaff';
 import { reportEmergency } from './emergency';
 import { logError } from '../utils/logger';
-import { DynamoDB } from 'aws-sdk';
-
-const dynamodb = new DynamoDB.DocumentClient();
-
-export async function getPatientResult(patientName: string) {
-    const patientsTable = process.env.PATIENTS_TABLE;
-
-    if (!patientsTable) {
-        throw new Error('環境変数 PATIENTS_TABLE が設定されていません');
-    } else {
-        return await dynamodb.query({
-            TableName: patientsTable,
-            IndexName: 'NameIndex',
-            KeyConditionExpression: '#name = :patientName',
-            ExpressionAttributeNames: {
-                '#name': 'name'
-            },
-            ExpressionAttributeValues: {
-                ':patientName': patientName
-            }
-        }).promise();
-    }
-}
 
 /**
  * コマンドを実行する

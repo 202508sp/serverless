@@ -1,8 +1,14 @@
 import { formatResponse } from '../utils/response';
 import { Device, VitalSign } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
+import { logError } from '../utils/logger';
 
-// バイタルサイン記録関数
+/**
+ * バイタル記録コマンドを実行する
+ * @param parameters コマンドパラメータ
+ * @param deviceInfo デバイス情報
+ * @returns 実行結果
+ */
 export async function recordVitalSigns(parameters: Record<string, any>, deviceInfo: Device) {
     try {
         const dataService = getDataService();
@@ -118,7 +124,7 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
             displayText: `${patientName}さんの${vitalTypeDisplay}を記録しました: \n ${vitalValueDisplay}`
         };
     } catch (error) {
-        console.error('バイタル記録エラー:', error);
+        logError('バイタル記録エラー:', error);
         return {
             command: 'ERROR',
             displayText: 'バイタル記録中にエラーが発生しました。'

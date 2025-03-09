@@ -1,7 +1,13 @@
 import { Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
+import { logError } from "../utils/logger";
 
-// スタッフ呼び出し関数
+/**
+ * スタッフ呼び出しコマンドを実行する
+ * @param parameters コマンドパラメータ
+ * @param _deviceInfo デバイス情報
+ * @returns 実行結果
+ */
 export async function callStaff(parameters: Record<string, any>, _deviceInfo: Device) {
     try {
         const dataService = getDataService();
@@ -54,7 +60,7 @@ export async function callStaff(parameters: Record<string, any>, _deviceInfo: De
             displayText: `${staffName}さんを呼び出しました。 \n 応答をお待ちください。`
         };
     } catch (error) {
-        console.error('スタッフ呼び出しエラー:', error);
+        logError('スタッフ呼び出しエラー:', error);
         return {
             command: 'ERROR',
             displayText: 'スタッフ呼び出し中にエラーが発生しました。'

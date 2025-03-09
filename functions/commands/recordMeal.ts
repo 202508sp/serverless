@@ -1,7 +1,13 @@
 import { CareRecord, Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
+import { logError } from "../utils/logger";
 
-// 食事記録関数
+/**
+ * 食事記録コマンドを実行する
+ * @param parameters コマンドパラメータ
+ * @param deviceInfo デバイス情報
+ * @returns 実行結果
+ */
 export async function recordMeal(parameters: Record<string, any>, deviceInfo: Device) {
     try {
         const dataService = getDataService();
@@ -25,7 +31,6 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
 
         // 患者IDの取得
         const patientResult = await dataService.getPatientResult(patientName);
-        console.log(patientResult);
 
         if (typeof patientResult === 'undefined') {
             return {
@@ -72,7 +77,7 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
             displayText: `${patientName}さんの${mealTypeDisplay}摂取記録を保存しました: \n 摂取量: ${amount}`
         };
     } catch (error) {
-        console.error('食事記録エラー:', error);
+        logError('食事記録エラー:', error);
         return {
             command: 'ERROR',
             displayText: '食事記録中にエラーが発生しました。'

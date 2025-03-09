@@ -1,4 +1,3 @@
-// functions/services/serviceFactory.ts
 import { ISpeechService } from './interfaces/ISpeechService';
 import { IAIService } from './interfaces/IAIService';
 import { IDataService } from './interfaces/IDataService';
@@ -26,6 +25,10 @@ export enum EnvironmentMode {
     TEST = 'test'
 }
 
+/**
+ * 現在の環境モードを取得
+ * @returns EnvironmentMode 列挙型
+ */
 export const getCurrentMode = (): EnvironmentMode => {
     const envMode = process.env.NODE_ENV || 'dev';
 
@@ -38,13 +41,21 @@ export const getCurrentMode = (): EnvironmentMode => {
     }
 };
 
-// モック使用判定
+/**
+ * モックサービスを使用するべきか判定
+ * @returns boolean
+ */
 export const shouldUseMocks = (): boolean => {
     const mode = getCurrentMode();
     return mode === EnvironmentMode.DEVELOPMENT || mode === EnvironmentMode.TEST;
 };
 
-// 外部からモックサービスを設定（テスト用）
+/**
+ * モックサービスを設定
+ * @param mockSpeech モック音声サービス
+ * @param mockAI モックAIサービス
+ * @param mockData モックデータサービス
+ */
 export const setMockServices = (
     mockSpeech?: ISpeechService,
     mockAI?: IAIService,
@@ -55,7 +66,10 @@ export const setMockServices = (
     if (mockData) dataService = mockData;
 };
 
-// サービス取得
+/**
+ * モックサービスをリセット（テスト間の分離用）
+ * @returns void
+ */
 export const getSpeechService = (): ISpeechService => {
     if (!speechService) {
         if (shouldUseMocks()) {
@@ -70,6 +84,10 @@ export const getSpeechService = (): ISpeechService => {
     return speechService;
 };
 
+/**
+ * AIサービスの取得
+ * @returns IAIService インターフェース
+ */
 export const getAIService = (): IAIService => {
     if (!aiService) {
         if (shouldUseMocks()) {
@@ -84,6 +102,10 @@ export const getAIService = (): IAIService => {
     return aiService;
 };
 
+/**
+ * データサービスの取得
+ * @returns IDataService インターフェース
+ */
 export const getDataService = (): IDataService => {
     if (!dataService) {
         if (shouldUseMocks()) {
@@ -98,14 +120,20 @@ export const getDataService = (): IDataService => {
     return dataService;
 };
 
-// サービスリセット（テスト間の分離用）
+/**
+ * サービスのリセット
+ * @returns void
+ */
 export const resetServices = (): void => {
     speechService = null;
     aiService = null;
     dataService = null;
 };
 
-// 開発用モック音声サービスのセットアップ
+/**
+ * 開発用モック音声サービスのセットアップ
+ * @param mockService モック音声サービス
+ */
 function setupDevMockSpeechService(mockService: MockSpeechService): void {
     // 音声データの結果をマッピング
     mockService.setMockResponse('base64_audio_data_patient_info', '山田さんの情報表示');
@@ -119,7 +147,10 @@ function setupDevMockSpeechService(mockService: MockSpeechService): void {
     mockService.setDefaultResponse('山田さんの情報表示');
 }
 
-// 開発用モックAIサービスのセットアップ
+/**
+ * 開発用モックAIサービスのセットアップ
+ * @param mockService モックAIサービス
+ */
 function setupDevMockAIService(mockService: MockAIService): void {
     // 患者情報表示コマンド
     mockService.setMockResponse('山田さんの情報表示', {
@@ -180,7 +211,10 @@ function setupDevMockAIService(mockService: MockAIService): void {
     });
 }
 
-// 開発用モックデータベースの初期化
+/**
+ * 開発用モックデータサービスのセットアップ
+ * @param mockService モックデータサービス
+ */
 function setupDevMockData(mockService: MockDataService): void {
     // 患者データ
     const patients: Patient[] = [

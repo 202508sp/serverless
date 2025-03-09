@@ -5,6 +5,9 @@ import { DynamoDB } from 'aws-sdk';
 
 const dynamodb = new DynamoDB.DocumentClient();
 
+/**
+ * データサービス
+ */
 export class DataService implements IDataService{
 
     /**
@@ -31,8 +34,9 @@ export class DataService implements IDataService{
     }
 
     /**
-     *
-     * @param patientName
+     * 患者名から患者情報を取得する
+     * @param patientName 患者名
+     * @returns 患者情報、または存在しない場合はnull
      */
     async getPatientResult(patientName: string) {
         const patientsTable = process.env.PATIENTS_TABLE;
@@ -203,6 +207,12 @@ export class DataService implements IDataService{
         return Promise.resolve(undefined);
     }
 
+    /**
+     * ケアレコードを保存する
+     * @param careRecordsTable ケアレコードテーブル名
+     * @param careRecord ケアレコード
+     * @returns なし
+     */
     async setCareRecord(careRecordsTable: string, careRecord: CareRecord | VitalSign): Promise<void> {
         await dynamodb.put({
             TableName: careRecordsTable,

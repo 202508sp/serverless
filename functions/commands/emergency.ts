@@ -1,6 +1,12 @@
 import { Device } from '../../types/models';
+import { logError } from "../utils/logger";
 
-// 緊急通報関数
+/**
+ * 緊急通報を行う
+ * @param parameters パラメータ
+ * @param _deviceInfo デバイス情報
+ * @returns CommandResult
+ */
 export async function reportEmergency(parameters: Record<string, any>, _deviceInfo: Device) {
 
     try {
@@ -34,7 +40,7 @@ export async function reportEmergency(parameters: Record<string, any>, _deviceIn
             isEmergency: true  // フロントエンドで赤色表示などの特別処理のフラグ
         };
     } catch (error) {
-        console.error('緊急通報エラー:', error);
+        logError('緊急通報エラー:', error);
         return {
             command: 'ERROR',
             displayText: '緊急通報の送信中にエラーが発生しました。'

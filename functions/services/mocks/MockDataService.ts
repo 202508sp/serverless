@@ -1,6 +1,9 @@
 import { Patient, Staff, Device, VitalSign, CareRecord } from "../../../types/models";
 import { IDataService } from "../interfaces/IDataService";
 
+/**
+ * モックデータサービス
+ */
 export class MockDataService implements IDataService {
     private patientData: Map<string, Patient> = new Map();
     private staffData: Map<string, Staff> = new Map();
@@ -28,6 +31,11 @@ export class MockDataService implements IDataService {
         return Promise.resolve(null);
     }
 
+    /**
+     * 患者名から患者情報を取得する
+     * @param patientName 患者名
+     * @returns 患者情報、または存在しない場合はnull
+     */
     getPatientResult(patientName: string): Promise<Patient | null> {
         const id = Array.from(this.patientData.keys()).find(key => {
             const patient = this.patientData.get(key);
@@ -36,10 +44,20 @@ export class MockDataService implements IDataService {
         return Promise.resolve(this.patientData.get(id || '') || null);
     }
 
+    /**
+     * 患者IDから患者情報を取得する
+     * @param id 患者ID
+     * @returns 患者情報、または存在しない場合はnull
+     */
     getPatientById(id: string): Promise<Patient | null> {
         return Promise.resolve(this.patientData.get(id) || null);
     }
 
+    /**
+     * 患者名から患者情報を取得する
+     * @param name 患者名
+     * @returns 患者情報、または存在しない場合はnull
+     */
     getPatientByName(name: string): Promise<Patient | null> {
         const id = Array.from(this.patientData.keys()).find(key => {
             const patient = this.patientData.get(key);
@@ -56,6 +74,11 @@ export class MockDataService implements IDataService {
         return Promise.resolve(null);
     }
 
+    /**
+     * スタッフ名からスタッフ情報を取得する
+     * @param name スタッフ名
+     * @returns スタッフ情報、または存在しない場合はnull
+     */
     getStaffByName(name: string): Promise<Staff | null> {
         const id = Array.from(this.staffData.keys()).find(key => {
             const staff = this.staffData.get(key);

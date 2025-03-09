@@ -2,6 +2,9 @@ import { ISpeechService } from './interfaces/ISpeechService';
 import * as speech from '@google-cloud/speech';
 import { logError } from '../utils/logger';
 
+/**
+ * 音声認識サービス
+ */
 export class SpeechService implements ISpeechService {
     private speechClient: speech.SpeechClient;
 
@@ -11,6 +14,11 @@ export class SpeechService implements ISpeechService {
         });
     }
 
+    /**
+     * 音声ファイルをテキストに変換する
+     * @param audioBase64 音声ファイルのBase64エンコード
+     * @returns 変換されたテキスト
+     */
     async transcribeAudio(audioBase64: string): Promise<string | null> {
         try {
             // Base64デコード

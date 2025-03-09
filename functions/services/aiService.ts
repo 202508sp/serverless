@@ -13,6 +13,12 @@ const model = genAI.getGenerativeModel({model: 'gemini-pro'});
  * @returns コマンド解析結果
  */
 export class AIService implements IAIService {
+
+    /**
+     * 音声テキストからコマンドを解析する
+     * @param text 音声認識されたテキスト
+     * @returns コマンド解析結果
+     */
     async analyzeCommand(text: string): Promise<CommandResult> {
         try {
             const prompt = `
