@@ -129,7 +129,7 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CommandHandlerLambdaFunction.Arn}/invocations"
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CommandHandlerLambdaFunction.Arn}/invocations
 
       MethodResponses:
         - StatusCode: '200'
@@ -158,4 +158,4 @@ Outputs:
 
   ApiEndpoint:
     Value:
-      Fn::Sub: 'https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
+      Fn::Sub: https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}
