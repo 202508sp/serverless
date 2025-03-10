@@ -37,7 +37,6 @@
     "@types/aws-lambda": "^8.10.147",
     "@types/node": "^22.13.9",
     "serverless": "^4.7.0",
-    "serverless-dotenv-plugin": "^6.0.0",
     "serverless-offline": "^14.4.0",
     "typescript": "^5.8.2"
   }
