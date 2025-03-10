@@ -56,7 +56,6 @@ resources:
 # プラグイン
 plugins:
   - serverless-offline  # ローカルテスト用
-  - serverless-dotenv-plugin  # 環境変数読み込み用
 
 custom:
   esbuild:
@@ -64,7 +63,6 @@ custom:
     minify: false
     sourcemap: true
     target: "node20"
-
 
 package:
   individually: true

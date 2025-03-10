@@ -8,29 +8,30 @@ on:
 
 jobs:
   deploy:
-    name: deploy
+    name: Deploy 🚀
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code 🛠
+        uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js 🔧
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
+      - name: Install Dependencies 📦
         run: |
           npm install
           npm install -g serverless@latest
 
-      - name: Check Serverless Framework version
+      - name: Check Serverless Version 📝
         run: serverless --version
 
-      - name: Deploy to Test (develop branch)
+      - name: Deploy to Test (develop branch) 🧪
         if: github.ref == 'refs/heads/develop'
         run: npx serverless deploy --stage test
         env:
@@ -39,7 +40,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
 
-      - name: Deploy to Production (main branch)
+      - name: Deploy to Production (main branch) 🌟
         if: github.ref == 'refs/heads/main'
         run: npx serverless deploy --stage prod
         env:
