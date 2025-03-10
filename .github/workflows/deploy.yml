@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x]
+        node-version: [20.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,12 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install -g serverless@latest
+
+      - name: Check Serverless Framework version
+        run: serverless --version
 
       - name: Deploy to Test (develop branch)
         if: github.ref == 'refs/heads/develop'
