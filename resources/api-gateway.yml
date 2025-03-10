@@ -131,12 +131,11 @@ Resources:
         Uri:
           Fn::Join:
             - ""
-            - - "arn:aws:apigateway:"
-              - Ref: AWS::Region
+            -
+              - "arn:aws:apigateway:"
+              - !Ref AWS::Region
               - ":lambda:path/2015-03-31/functions/"
-              - Fn::GetAtt:
-                  - CommandHandlerLambdaFunction
-                  - Arn
+              - GetAtt: CommandHandlerLambdaFunction.Arn
               - "/invocations"
 
       MethodResponses:
