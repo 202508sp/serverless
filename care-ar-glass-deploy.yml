@@ -1,3 +1,3 @@
-template-file-path: serverless.yml
+template-file-path: resources.yml
 parameters: {}
 tags: {}
