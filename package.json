@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "deploy": "serverless deploy",
+    "deploy:test": "serverless deploy --stage test",
+    "deploy:prod": "serverless deploy --stage prod",
     "start": "serverless offline",
     "test": "jest",
     "test:watch": "jest --watch"
