@@ -129,14 +129,7 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri:
-          Fn::Join:
-            - ""
-            -
-              - "arn:aws:apigateway:"
-              - !Ref AWS::Region
-              - ":lambda:path/2015-03-31/functions/"
-              - GetAtt: CommandHandlerLambdaFunction.Arn
-              - "/invocations"
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CommandHandlerLambdaFunction.Arn}/invocations"
 
       MethodResponses:
         - StatusCode: '200'
