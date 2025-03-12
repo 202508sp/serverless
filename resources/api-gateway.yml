@@ -124,8 +124,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !GetAtt CommandHandlerLambdaFunction.Arn
-      Action:
-        lambda: InvokeFunction
+      Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
 
   ApiGatewayDeployment:
