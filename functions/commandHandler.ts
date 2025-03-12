@@ -10,7 +10,7 @@ import { AttributeMap } from "aws-sdk/clients/dynamodb";
 // AWS設定
 const dynamodb = new DynamoDB.DocumentClient();
 
-export async function handler(event: APIGatewayProxyEvent) {
+export const handler = async (event: APIGatewayProxyEvent) => {
     try {
         logEvent('音声コマンドハンドラー', event);
 
