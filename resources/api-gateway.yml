@@ -86,7 +86,6 @@ Resources:
           DEVICES_TABLE: ${self:service}-${self:provider.stage}-devices
           STAFF_TABLE: ${self:service}-${self:provider.stage}-staff
           FAMILY_ACCESS_TABLE: ${self:service}-${self:provider.stage}-family-access
-          GEMINI_API_KEY: ${env:GEMINI_API_KEY}
           GOOGLE_APPLICATION_CREDENTIALS: '${google-credentials.json}'
 
   ApiGatewayResourceCommand:
