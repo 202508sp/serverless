@@ -1,6 +1,6 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { CareRecord, Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
-import { logError } from "../utils/logger";
 
 /**
  * 食事記録コマンドを実行する
@@ -77,7 +77,7 @@ export async function recordMeal(parameters: Record<string, any>, deviceInfo: De
             displayText: `${patientName}さんの${mealTypeDisplay}摂取記録を保存しました: \n 摂取量: ${amount}`
         };
     } catch (error) {
-        logError('食事記録エラー:', error);
+        logStatus({ code: 500, message: '食事記録エラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: '食事記録中にエラーが発生しました。'

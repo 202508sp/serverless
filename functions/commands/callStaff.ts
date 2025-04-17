@@ -1,6 +1,6 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
-import { logError } from "../utils/logger";
 
 /**
  * スタッフ呼び出しコマンドを実行する
@@ -60,7 +60,7 @@ export async function callStaff(parameters: Record<string, any>, _deviceInfo: De
             displayText: `${staffName}さんを呼び出しました。 \n 応答をお待ちください。`
         };
     } catch (error) {
-        logError('スタッフ呼び出しエラー:', error);
+        logStatus({ code: 500, message: 'スタッフ呼び出しエラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: 'スタッフ呼び出し中にエラーが発生しました。'

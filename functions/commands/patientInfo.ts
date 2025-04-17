@@ -1,6 +1,6 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { Device } from '../../types/models';
 import { getDataService } from '../services/serviceFactory';
-import { logActivity } from '../utils/logger';
 
 /**
  * 患者情報取得コマンドを実行する
@@ -66,7 +66,7 @@ export async function getPatientInfo(parameters: Record<string, any>, deviceInfo
         vitalInfo;
 
     // 記録をログに残す
-    await logActivity(deviceInfo.assignedTo, 'GET_PATIENT_INFO', { patientId: patient.patientId });
+    logStatus({ code: 200, message: '患者情報取得' }, { patientId: patient.patientId, deviceId: deviceInfo.deviceId });
 
     return {
         command: 'GET_PATIENT_INFO',

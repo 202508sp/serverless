@@ -1,3 +1,4 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { CommandResult, Device } from '../../types/models';
 import { getPatientInfo } from './patientInfo';
 import { recordVitalSigns } from './recordVital';
@@ -5,7 +6,6 @@ import { recordMeal } from './recordMeal';
 import { recordMedicine } from './recordMedicine';
 import { callStaff } from './callStaff';
 import { reportEmergency } from './emergency';
-import { logError } from '../utils/logger';
 
 /**
  * コマンドを実行する
@@ -51,7 +51,7 @@ export async function executeCommand(commandResult: CommandResult, deviceInfo: D
                 };
         }
     } catch (error) {
-        logError('コマンド実行エラー', error);
+        logStatus({ code: 500, message: 'コマンド実行エラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: 'コマンド実行中にエラーが発生しました: ' + (error as Error).message

@@ -1,6 +1,6 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { CareRecord, Device } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
-import { logError } from "../utils/logger";
 
 /**
  * 投薬記録コマンドを実行する
@@ -72,7 +72,7 @@ export async function recordMedicine(parameters: Record<string, any>, deviceInfo
             displayText: `${patientName}さんの投薬を記録しました: \n 薬剤: ${medicine}`
         };
     } catch (error) {
-        logError('投薬記録エラー:', error);
+        logStatus({ code: 500, message: '投薬記録エラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: '投薬記録中にエラーが発生しました。'

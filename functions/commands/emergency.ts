@@ -1,5 +1,5 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { Device } from '../../types/models';
-import { logError } from "../utils/logger";
 
 /**
  * 緊急通報を行う
@@ -40,7 +40,7 @@ export async function reportEmergency(parameters: Record<string, any>, _deviceIn
             isEmergency: true  // フロントエンドで赤色表示などの特別処理のフラグ
         };
     } catch (error) {
-        logError('緊急通報エラー:', error);
+        logStatus({ code: 500, message: '緊急通報エラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: '緊急通報の送信中にエラーが発生しました。'

@@ -1,6 +1,6 @@
 import { ISpeechService } from './interfaces/ISpeechService';
 import * as speech from '@google-cloud/speech';
-import { logError } from '../utils/logger';
+import { logStatus } from '@shiki-01/logstatus';
 
 /**
  * 音声認識サービス
@@ -47,7 +47,7 @@ export class SpeechService implements ISpeechService {
                 .map(result => result.alternatives && result.alternatives[0].transcript || '')
                 .join('\n');
         } catch (error) {
-            logError('音声認識エラー', error);
+            logStatus({ code: 500, message: '音声認識エラー' }, {}, error);
             return null;
         }
     }

@@ -1,11 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logStatus } from '@shiki-01/logstatus';
 import { CommandResult } from '../../types/models';
-import { logError } from '../utils/logger';
 import { IAIService } from "./interfaces/IAIService";
 
 // Google AI設定
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({model: 'gemini-pro'});
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 /**
  * 音声テキストからコマンドを解析する
@@ -14,14 +14,14 @@ const model = genAI.getGenerativeModel({model: 'gemini-pro'});
  */
 export class AIService implements IAIService {
 
-    /**
-     * 音声テキストからコマンドを解析する
-     * @param text 音声認識されたテキスト
-     * @returns コマンド解析結果
-     */
-    async analyzeCommand(text: string): Promise<CommandResult> {
-        try {
-            const prompt = `
+  /**
+   * 音声テキストからコマンドを解析する
+   * @param text 音声認識されたテキスト
+   * @returns コマンド解析結果
+   */
+  async analyzeCommand(text: string): Promise<CommandResult> {
+    try {
+      const prompt = `
 あなたは介護施設で使用されるARグラスのコマンド解析AIです。
 以下の音声テキストを分析し、適切なコマンドとパラメータに変換してください。
 
@@ -52,27 +52,27 @@ export class AIService implements IAIService {
 }
 `;
 
-            const result = await model.generateContent(prompt);
-            const responseText = result.response.text();
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
 
-            // JSON部分を抽出（Geminiは時々説明文を付けることがある）
-            const jsonMatch = responseText.match(/\{[\s\S]*}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
+      // JSON部分を抽出（Geminiは時々説明文を付けることがある）
+      const jsonMatch = responseText.match(/\{[\s\S]*}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
 
-            return {
-                command: 'UNKNOWN',
-                parameters: {},
-                confidence: 0
-            }
-        } catch (error) {
-            logError('コマンド解析エラー', error);
-            return {
-                command: 'UNKNOWN',
-                parameters: {},
-                confidence: 0
-            };
-        }
+      return {
+        command: 'UNKNOWN',
+        parameters: {},
+        confidence: 0
+      }
+    } catch (error) {
+      logStatus({ code: 500, message: 'AIService.analyzeCommand'}, {}, error);
+      return {
+        command: 'UNKNOWN',
+        parameters: {},
+        confidence: 0
+      };
     }
+  }
 }

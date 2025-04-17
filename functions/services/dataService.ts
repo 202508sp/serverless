@@ -1,6 +1,6 @@
+import { logStatus } from "@shiki-01/logstatus";
 import { IDataService } from "./interfaces/IDataService";
 import { CareRecord, Device, Patient, Staff, VitalSign } from "../../types/models";
-import { logError } from "../utils/logger";
 import { DynamoDB } from 'aws-sdk';
 
 const dynamodb = new DynamoDB.DocumentClient();
@@ -8,7 +8,7 @@ const dynamodb = new DynamoDB.DocumentClient();
 /**
  * データサービス
  */
-export class DataService implements IDataService{
+export class DataService implements IDataService {
 
     /**
      * デバイス情報を追加する
@@ -19,7 +19,7 @@ export class DataService implements IDataService{
         try {
             const result = await dynamodb.get({
                 TableName: process.env.DEVICES_TABLE || '',
-                Key: {deviceId}
+                Key: { deviceId }
             }).promise();
 
             if (!result.Item) {
@@ -28,7 +28,7 @@ export class DataService implements IDataService{
 
             return result.Item as Device;
         } catch (error) {
-            logError('デバイス情報取得エラー', error);
+            logStatus({ code: 500, message: 'デバイス情報取得エラー' }, {}, error);
             return null;
         }
     }
@@ -73,7 +73,7 @@ export class DataService implements IDataService{
         try {
             const result = await dynamodb.get({
                 TableName: process.env.PATIENTS_TABLE || '',
-                Key: {patientId}
+                Key: { patientId }
             }).promise();
 
             if (!result.Item) {
@@ -82,7 +82,7 @@ export class DataService implements IDataService{
 
             return result.Item as Patient;
         } catch (error) {
-            logError('患者情報取得エラー', error);
+            logStatus({ code: 500, message: '患者情報取得エラー' }, {}, error);
             return null;
         }
     }
@@ -112,7 +112,7 @@ export class DataService implements IDataService{
 
             return result.Items[0] as Patient;
         } catch (error) {
-            logError('患者情報取得エラー', error);
+            logStatus({ code: 500, message: '患者情報取得エラー' }, {}, error);
             return null;
         }
     }
@@ -137,7 +137,7 @@ export class DataService implements IDataService{
 
             return (result.Items || []) as VitalSign[];
         } catch (error) {
-            logError('バイタル履歴取得エラー', error);
+            logStatus({ code: 500, message: 'バイタルサイン履歴取得エラー' }, {}, error);
             return [];
         }
     }
@@ -167,7 +167,7 @@ export class DataService implements IDataService{
 
             return result.Items[0] as Staff;
         } catch (error) {
-            logError('スタッフ情報取得エラー', error);
+            logStatus({ code: 500, message: 'スタッフ情報取得エラー' }, {}, error);
             return null;
         }
     }
@@ -181,7 +181,7 @@ export class DataService implements IDataService{
         try {
             const result = await dynamodb.get({
                 TableName: process.env.STAFF_TABLE || '',
-                Key: {staffId}
+                Key: { staffId }
             }).promise();
 
             if (!result.Item) {
@@ -190,7 +190,7 @@ export class DataService implements IDataService{
 
             return result.Item as Staff;
         } catch (error) {
-            logError('スタッフ情報取得エラー', error);
+            logStatus({ code: 500, message: 'スタッフ情報取得エラー' }, {}, error);
             return null;
         }
     }

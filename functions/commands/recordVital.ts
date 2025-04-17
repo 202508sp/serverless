@@ -1,7 +1,7 @@
+import { logStatus } from '@shiki-01/logstatus';
 import { formatResponse } from '../utils/response';
 import { Device, VitalSign } from '../../types/models';
 import { getDataService } from "../services/serviceFactory";
-import { logError } from '../utils/logger';
 
 /**
  * バイタル記録コマンドを実行する
@@ -124,7 +124,7 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
             displayText: `${patientName}さんの${vitalTypeDisplay}を記録しました: \n ${vitalValueDisplay}`
         };
     } catch (error) {
-        logError('バイタル記録エラー:', error);
+        logStatus({ code: 500, message: 'バイタル記録エラー' }, {}, error);
         return {
             command: 'ERROR',
             displayText: 'バイタル記録中にエラーが発生しました。'
