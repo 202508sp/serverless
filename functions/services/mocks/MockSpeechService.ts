@@ -34,8 +34,11 @@ export class MockSpeechService implements ISpeechService {
      */
     async transcribeAudio(audioBase64: string): Promise<string | null> {
         // 特定の入力に対するモックレスポンスがあればそれを返す
+        console.log('MockSpeechService: transcribeAudio called with audioBase64:', audioBase64);
         if (this.mockResponses.has(audioBase64)) {
             return this.mockResponses.get(audioBase64) || null;
+        } else {
+            return audioBase64;
         }
 
         // デフォルトレスポンスがあればそれを返す

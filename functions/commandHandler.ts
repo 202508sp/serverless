@@ -1,10 +1,10 @@
 import { DynamoDB } from 'aws-sdk';
 import { APIGatewayProxyEvent } from 'aws-lambda';
+import { logStatus } from '@shiki-01/logstatus';
 import { executeCommand } from "./commands";
 import { formatResponse } from './utils/response';
-import { logEvent } from "./utils/logger";
 import { Device } from "../types/models";
-import { EnvironmentMode, getAIService, getCurrentMode, getSpeechService } from "./services/serviceFactory";
+import { getAIService, getSpeechService } from "./services/serviceFactory";
 import { AttributeMap } from "aws-sdk/clients/dynamodb";
 
 // AWS設定
@@ -12,58 +12,30 @@ const dynamodb = new DynamoDB.DocumentClient();
 
 export const handler = async (event: APIGatewayProxyEvent) => {
     try {
-        logEvent('音声コマンドハンドラー', event);
+        logStatus({ code: 200, message: '音声コマンド受信' }, { data: { event, body: event.body } });
 
         const speechService = getSpeechService();
         const aiService = getAIService();
 
         // リクエストボディの解析
         const body = JSON.parse(event.body || '{}');
-        let {audio, deviceId, mockCommand} = body;
-
-        // 開発モードチェック
-        const isDevMode = getCurrentMode() === EnvironmentMode.DEVELOPMENT;
+        let { audio, deviceId } = body;
 
         if (!audio || !deviceId) {
-            return formatResponse(400, {error: '音声データとデバイスIDが必要です'});
-        }
-
-        // 開発モードでは、mockCommandパラメータがあれば特定の音声データとして扱う
-        if (isDevMode && mockCommand) {
-            // mockCommandに応じて適切な音声データIDを設定
-            switch (mockCommand) {
-                case 'patient_info':
-                    audio = 'base64_audio_data_patient_info';
-                    break;
-                case 'temperature':
-                    audio = 'base64_audio_data_temperature';
-                    break;
-                case 'meal':
-                    audio = 'base64_audio_data_meal';
-                    break;
-                case 'medicine':
-                    audio = 'base64_audio_data_medicine';
-                    break;
-                case 'call':
-                    audio = 'base64_audio_data_call';
-                    break;
-                case 'emergency':
-                    audio = 'base64_audio_data_emergency';
-                    break;
-            }
+            return formatResponse(400, { error: '音声データとデバイスIDが必要です' });
         }
 
         // デバイス情報の検証
         const deviceInfo = await getDeviceInfo(deviceId);
         if (!deviceInfo) {
-            return formatResponse(403, {error: '未登録のデバイスです'});
+            return formatResponse(403, { error: '未登録のデバイスです' });
         }
 
         const convertedDeviceInfo = DynamoDB.Converter.unmarshall(deviceInfo) as Device;
 
         // 音声認識
         const transcription = await speechService.transcribeAudio(audio);
-        logEvent('音声認識結果', {transcription});
+        logStatus({ code: 200, message: '音声認識結果' }, { data: { convertedDeviceInfo, transcription } });
 
         if (!transcription) {
             return formatResponse(400, {
@@ -74,7 +46,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
         // コマンド解析
         const commandResult = await aiService.analyzeCommand(transcription);
-        logEvent('コマンド解析結果', commandResult);
+        logStatus({ code: 200, message: 'コマンド解析結果' }, { data: { convertedDeviceInfo, commandResult } });
 
         // コマンド実行
         const result = await executeCommand(commandResult, convertedDeviceInfo);
@@ -109,7 +81,7 @@ async function getDeviceInfo(deviceId: string): Promise<AttributeMap | undefined
 
         const result = await dynamodb.get({
             TableName: deviceTable,
-            Key: {deviceId}
+            Key: { deviceId }
         }).promise();
 
         return result.Item;

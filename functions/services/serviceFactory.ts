@@ -90,7 +90,7 @@ export const getSpeechService = (): ISpeechService => {
  */
 export const getAIService = (): IAIService => {
     if (!aiService) {
-        if (shouldUseMocks()) {
+        if (!shouldUseMocks()) {
             console.log('Using MockAIService');
             const mockService = new MockAIService();
             setupDevMockAIService(mockService);
@@ -99,7 +99,7 @@ export const getAIService = (): IAIService => {
             aiService = new AIService();
         }
     }
-    return aiService;
+    return new AIService();
 };
 
 /**

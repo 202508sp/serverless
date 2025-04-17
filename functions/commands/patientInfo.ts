@@ -21,6 +21,7 @@ export async function getPatientInfo(parameters: Record<string, any>, deviceInfo
 
     // 患者情報取得
     const patient = await dataService.getPatientByName(patientName);
+    console.log("患者情報取得", patient);
     if (!patient) {
         return {
             command: 'NOT_FOUND',

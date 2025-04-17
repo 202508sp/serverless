@@ -1,11 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { logStatus } from '@shiki-01/logstatus';
 import { CommandResult } from '../../types/models';
 import { IAIService } from "./interfaces/IAIService";
-
-// Google AI設定
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+import { ChatResponse, Ollama } from 'ollama';
 
 /**
  * 音声テキストからコマンドを解析する
@@ -21,43 +17,81 @@ export class AIService implements IAIService {
    */
   async analyzeCommand(text: string): Promise<CommandResult> {
     try {
-      const prompt = `
-あなたは介護施設で使用されるARグラスのコマンド解析AIです。
-以下の音声テキストを分析し、適切なコマンドとパラメータに変換してください。
 
-コマンド一覧:
-- GET_PATIENT_INFO: 患者情報の取得（例: "山田さんの情報表示"）
-  必要パラメータ: patientName
-- RECORD_VITAL: バイタルサイン記録（例: "鈴木さんの体温は37.2度、血圧は138-85"）
-  必要パラメータ: patientName, vitalType, vitalValue
-- RECORD_MEAL: 食事摂取記録（例: "佐藤さん、昼食8割摂取"）
-  必要パラメータ: patientName, mealType, amount
-- RECORD_MEDICINE: 投薬記録（例: "田中さん、降圧剤投与完了"）
-  必要パラメータ: patientName, medicine
-- CALL_STAFF: スタッフ呼び出し（例: "田中看護師を呼んで"）
-  必要パラメータ: staffName
-- EMERGENCY: 緊急事態通報（例: "緊急、102号室"）
-  必要パラメータ: location
+      const ollama = new Ollama()
+      let response: ChatResponse | null = null
 
-音声テキスト: "${text}"
+      const prompt = `Analyze the following speech text and convert it to a JSON command with parameters.
 
-以下のJSONフォーマットで返答してください:
+Command List:
+
+    GET_PATIENT_INFO
+        Parameters:
+            patientName (Name of the patient)
+
+        Example: 山田太郎さんの情報を教えて
+
+    RECORD_VITAL
+        Parameters:
+            patientName (Name of the patient)
+            vitalType (temperature, bloodPressure, heartRate, spO2)
+            vitalValue (number)
+
+        Example: 佐藤花子さんの体温は37.2度
+
+    RECORD_MEAL
+        Parameters:
+            patientName (Name of the patient)
+            mealType (breakfast, lunch, dinner)
+            amount (percentage, number)
+
+        Example: 田中次郎さんの昼食は8割摂取
+
+    RECORD_MEDICINE
+        Parameters:
+            patientName (Name of the patient)
+            medicine (Name of the medicine)
+
+        Example: 鈴木一郎さんに降圧剤を投与しました
+
+    CALL_STAFF
+        Parameters:
+            staffName (Name of the staff)
+
+        Example: 田中看護師を呼んでください
+
+    EMERGENCY
+        Parameters:
+            location (Room number or location)
+
+        Example: 緊急です、102号室に来てください
+
+Output format (JSON only):
+
+json
 {
-  "command": "コマンド名",
+  "command": "COMMAND_NAME",
   "parameters": {
-    "param1": "値1",
-    "param2": "値2"
+    "param1": "value1",
+    "param2": "value2"
   },
-  "confidence": 0.0〜1.0の信頼度
+  "confidence": 0.0
 }
+
+If required parameters are missing, set "command" to "ERROR" and "parameters" to {}.
+
+Speech text: "${text}"
 `;
 
-      const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
+      response = await ollama.chat({
+        model: 'gemma3:4b-it-fp16',
+        messages: [{ role: 'user', content: prompt }],
+      })
 
       // JSON部分を抽出（Geminiは時々説明文を付けることがある）
-      const jsonMatch = responseText.match(/\{[\s\S]*}/);
+      const jsonMatch = response.message.content.match(/\{[\s\S]*}/);
       if (jsonMatch) {
+        console.log("Geminiの応答:", text, jsonMatch[0]);
         return JSON.parse(jsonMatch[0]);
       }
 
@@ -67,7 +101,7 @@ export class AIService implements IAIService {
         confidence: 0
       }
     } catch (error) {
-      logStatus({ code: 500, message: 'AIService.analyzeCommand'}, {}, error);
+      logStatus({ code: 500, message: 'AIService.analyzeCommand' }, {}, error);
       return {
         command: 'UNKNOWN',
         parameters: {},
