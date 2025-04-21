@@ -79,13 +79,14 @@ json
 }
 
 If required parameters are missing, set "command" to "ERROR" and "parameters" to {}.
-
-Speech text: "${text}"
 `;
 
       response = await ollama.chat({
-        model: 'gemma3:4b-it-fp16',
-        messages: [{ role: 'user', content: prompt }],
+        model: 'gemma3:1b',
+        messages: [
+          { role: 'system', content: prompt },
+          { role: 'user', content: text },
+        ],
       })
 
       // JSON部分を抽出（Geminiは時々説明文を付けることがある）

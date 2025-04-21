@@ -276,7 +276,7 @@ function setupDevMockData(mockService: MockDataService): void {
     const staffs: Staff[] = [
         {
             staffId: 'S001',
-            name: '佐藤看護師',
+            name: '佐藤花子',
             role: '看護師',
             contactInfo: { phone: '090-1111-2222' },
             status: 'active',
@@ -285,7 +285,7 @@ function setupDevMockData(mockService: MockDataService): void {
         },
         {
             staffId: 'S002',
-            name: '田中看護師',
+            name: '田中太郎',
             role: '看護師',
             contactInfo: { phone: '090-3333-4444' },
             status: 'active',
@@ -294,7 +294,7 @@ function setupDevMockData(mockService: MockDataService): void {
         },
         {
             staffId: 'S003',
-            name: '鈴木医師',
+            name: '鈴木次郎',
             role: '医師',
             contactInfo: { phone: '090-5555-6666' },
             status: 'active',
