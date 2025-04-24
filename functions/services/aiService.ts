@@ -18,7 +18,9 @@ export class AIService implements IAIService {
   async analyzeCommand(text: string): Promise<CommandResult> {
     try {
 
-      const ollama = new Ollama()
+      const ollama = new Ollama({
+        host: '127.0.0.1:11434',
+      })
       let response: ChatResponse | null = null
 
       const prompt = `Analyze the following speech text and convert it to a JSON command with parameters.
@@ -30,6 +32,7 @@ Command List:
             patientName (Name of the patient)
 
         Example: 山田太郎さんの情報を教えて
+        Info: patientName must be in the format of "山田太郎" from "山田太郎さん"
 
     RECORD_VITAL
         Parameters:
@@ -38,6 +41,8 @@ Command List:
             vitalValue (number)
 
         Example: 佐藤花子さんの体温は37.2度
+        Info: vitalType is one of "体温", "血圧", "心拍数", "酸素飽和度" in Japanese
+        Info: vitalValue is a number, e.g., 37.2
 
     RECORD_MEAL
         Parameters:
@@ -46,6 +51,8 @@ Command List:
             amount (percentage, number)
 
         Example: 田中次郎さんの昼食は8割摂取
+        Info: mealType is one of "朝", "昼", "夜" in Japanese
+        Info: amount is a percentage, e.g., 80
 
     RECORD_MEDICINE
         Parameters:
@@ -53,6 +60,7 @@ Command List:
             medicine (Name of the medicine)
 
         Example: 鈴木一郎さんに降圧剤を投与しました
+        Info: medicine is a name of the medicine, e.g., "降圧剤". please predict the name of the medicine from the context.
 
     CALL_STAFF
         Parameters:
@@ -92,7 +100,6 @@ If required parameters are missing, set "command" to "ERROR" and "parameters" to
       // JSON部分を抽出（Geminiは時々説明文を付けることがある）
       const jsonMatch = response.message.content.match(/\{[\s\S]*}/);
       if (jsonMatch) {
-        console.log("Geminiの応答:", text, jsonMatch[0]);
         return JSON.parse(jsonMatch[0]);
       }
 
