@@ -41,8 +41,12 @@ Command List:
             vitalValue (number)
 
         Example: 佐藤花子さんの体温は37.2度
-        Info: vitalType is one of "体温", "血圧", "心拍数", "酸素飽和度" in Japanese
         Info: vitalValue is a number, e.g., 37.2
+        Mapping:
+            temperature -> 体温|熱
+            bloodPressure -> 血圧
+            heartRate -> 脈拍|心拍数
+            spO2 -> 酸素飽和度
 
     RECORD_MEAL
         Parameters:
@@ -86,11 +90,12 @@ json
   "confidence": 0.0
 }
 
+confidence: 0.3 * patientName + 0.4 * type + 0.3 * value
 If required parameters are missing, set "command" to "ERROR" and "parameters" to {}.
 `;
 
       response = await ollama.chat({
-        model: 'gemma3:1b',
+        model: 'hf.co/elyza/Llama-3-ELYZA-JP-8B-GGUF:latest',
         messages: [
           { role: 'system', content: prompt },
           { role: 'user', content: text },
