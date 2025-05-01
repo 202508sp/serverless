@@ -19,83 +19,56 @@ export class AIService implements IAIService {
     try {
 
       const ollama = new Ollama({
-        host: '127.0.0.1:11434',
+        
       })
       let response: ChatResponse | null = null
 
-      const prompt = `Analyze the following speech text and convert it to a JSON command with parameters.
+      const prompt = `# JSON変換タスク
+入力された音声テキストを分析し、適切なJSONコマンドに変換してください。
+出力は必ず有効なJSONのみとし、説明文は含めないでください。
 
-Command List:
+## コマンド定義
 
-    GET_PATIENT_INFO
-        Parameters:
-            patientName (Name of the patient)
+### GET_PATIENT_INFO
+- 必須: patientName（「〇〇さん」から「〇〇」の形式で抽出）
+- 例: 「山田太郎さんの情報を教えて」→ {"command":"GET_PATIENT_INFO","parameters":{"patientName":"山田太郎"}}
 
-        Example: 山田太郎さんの情報を教えて
-        Info: patientName must be in the format of "山田太郎" from "山田太郎さん"
+### RECORD_VITAL
+- 必須: patientName, vitalType, vitalValue
+- vitalType対応: 
+  * temperature: 体温/熱
+  * bloodPressure: 血圧
+  * heartRate: 脈拍/心拍数
+  * spO2: 酸素飽和度
+- 例: 「佐藤花子さんの体温は37.2度」→ {"command":"RECORD_VITAL","parameters":{"patientName":"佐藤花子","vitalType":"temperature","vitalValue":37.2}}
 
-    RECORD_VITAL
-        Parameters:
-            patientName (Name of the patient)
-            vitalType (temperature, bloodPressure, heartRate, spO2)
-            vitalValue (number)
+### RECORD_MEAL
+- 必須: patientName, mealType, amount
+- mealType対応: breakfast(朝食), lunch(昼食), dinner(夕食)
+- 例: 「田中次郎さんの昼食は8割摂取」→ {"command":"RECORD_MEAL","parameters":{"patientName":"田中次郎","mealType":"lunch","amount":80}}
 
-        Example: 佐藤花子さんの体温は37.2度
-        Info: vitalValue is a number, e.g., 37.2
-        Mapping:
-            temperature -> 体温|熱
-            bloodPressure -> 血圧
-            heartRate -> 脈拍|心拍数
-            spO2 -> 酸素飽和度
+### RECORD_MEDICINE
+- 必須: patientName, medicine
+- 例: 「鈴木一郎さんに降圧剤を投与しました」→ {"command":"RECORD_MEDICINE","parameters":{"patientName":"鈴木一郎","medicine":"降圧剤"}}
 
-    RECORD_MEAL
-        Parameters:
-            patientName (Name of the patient)
-            mealType (breakfast, lunch, dinner)
-            amount (percentage, number)
+### CALL_STAFF
+- 必須: staffName
+- 例: 「田中看護師を呼んでください」→ {"command":"CALL_STAFF","parameters":{"staffName":"田中看護師"}}
 
-        Example: 田中次郎さんの昼食は8割摂取
-        Info: mealType is one of "朝", "昼", "夜" in Japanese
-        Info: amount is a percentage, e.g., 80
+### EMERGENCY
+- 必須: location
+- 例: 「緊急です、102号室に来てください」→ {"command":"EMERGENCY","parameters":{"location":"102号室"}}
 
-    RECORD_MEDICINE
-        Parameters:
-            patientName (Name of the patient)
-            medicine (Name of the medicine)
+## 出力フォーマット
+必須パラメータが揃っている場合:
+{"command":"COMMAND_NAME","parameters":{"param1":"value1","param2":"value2"}}
 
-        Example: 鈴木一郎さんに降圧剤を投与しました
-        Info: medicine is a name of the medicine, e.g., "降圧剤". please predict the name of the medicine from the context.
-
-    CALL_STAFF
-        Parameters:
-            staffName (Name of the staff)
-
-        Example: 田中看護師を呼んでください
-
-    EMERGENCY
-        Parameters:
-            location (Room number or location)
-
-        Example: 緊急です、102号室に来てください
-
-Output format (JSON only):
-
-json
-{
-  "command": "COMMAND_NAME",
-  "parameters": {
-    "param1": "value1",
-    "param2": "value2"
-  },
-  "confidence": 0.0
-}
-
-confidence: 0.3 * patientName + 0.4 * type + 0.3 * value
-If required parameters are missing, set "command" to "ERROR" and "parameters" to {}.
+必須パラメータが不足している場合:
+{"command":"ERROR","parameters":{}}
 `;
 
       response = await ollama.chat({
-        model: 'hf.co/elyza/Llama-3-ELYZA-JP-8B-GGUF:latest',
+        model: 'gemma3:1b',
         messages: [
           { role: 'system', content: prompt },
           { role: 'user', content: text },
