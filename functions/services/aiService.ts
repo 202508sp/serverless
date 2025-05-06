@@ -27,6 +27,10 @@ export class AIService implements IAIService {
 入力された音声テキストを分析し、適切なJSONコマンドに変換してください。
 出力は必ず有効なJSONのみとし、説明文は含めないでください。
 
+## 注意事項
+- JSONは厳密な構文で出力してください（例: プロパティ間にカンマを忘れない）。
+- 不完全なJSONや説明文を含む出力は無効とみなされます。
+
 ## コマンド定義
 
 ### GET_PATIENT_INFO
@@ -35,12 +39,13 @@ export class AIService implements IAIService {
 
 ### RECORD_VITAL
 - 必須: patientName, vitalType, vitalValue
-- vitalType対応: 
+- vitalType対応:
   * temperature: 体温/熱
-  * bloodPressure: 血圧
+  * bloodPressure: 血圧 ( 'vitalValue' に血圧の最高値 max と最低値 min を「max-min」の形式で実際の値を用いて出力 e.g. 120-80 )
   * heartRate: 脈拍/心拍数
   * spO2: 酸素飽和度
 - 例: 「佐藤花子さんの体温は37.2度」→ {"command":"RECORD_VITAL","parameters":{"patientName":"佐藤花子","vitalType":"temperature","vitalValue":37.2}}
+- 例: 「田中次郎さんの血圧は最高120、最低80」→ {"command":"RECORD_VITAL","parameters":{"patientName":"田中次郎","vitalType":"bloodPressure","vitalValue":"120-80"}}
 
 ### RECORD_MEAL
 - 必須: patientName, mealType, amount

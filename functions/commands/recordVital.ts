@@ -53,12 +53,12 @@ export async function recordVitalSigns(parameters: Record<string, any>, deviceIn
         switch (vitalType.toLowerCase()) {
             case 'temperature':
             case '体温':
-                vitalData.temperature = parseFloat(vitalValue.replace(/[度℃]/g, ''));
+                vitalData.temperature = parseFloat(vitalValue);
                 break;
 
             case 'bloodpressure':
             case '血圧':
-                // 例: "135-85"や"135/85"形式
+                console.log('血圧の値:', vitalValue, typeof vitalValue);
                 const bpParts = vitalValue.split(/[-\/]/);
                 if (bpParts.length === 2) {
                     vitalData.bloodPressureSystolic = parseInt(bpParts[0].trim());
